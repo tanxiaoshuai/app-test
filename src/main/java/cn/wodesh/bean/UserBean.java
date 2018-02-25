@@ -65,14 +65,4 @@ public class UserBean {
         this.token = token;
     }
 
-    @Override
-    public String toString() {
-        return "UserBean{" +
-                "uuid='" + uuid + '\'' +
-                ", username='" + username + '\'' +
-                ", headurl='" + headurl + '\'' +
-                ", logintime='" + logintime + '\'' +
-                ", token='" + token + '\'' +
-                '}';
-    }
 }
