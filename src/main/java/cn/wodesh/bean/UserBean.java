@@ -19,11 +19,16 @@ public class UserBean {
     @FieldName(name = "username")
     private String username;
 
+    @FieldName
     private String headurl;
 
+    @FieldName
     private String logintime;
 
+    @FieldName
     private String token;
+
+    private int age;
 
     public String getUuid() {
         return uuid;
@@ -65,4 +70,23 @@ public class UserBean {
         this.token = token;
     }
 
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    @Override
+    public String toString() {
+        return "UserBean{" +
+                "uuid='" + uuid + '\'' +
+                ", username='" + username + '\'' +
+                ", headurl='" + headurl + '\'' +
+                ", logintime='" + logintime + '\'' +
+                ", token='" + token + '\'' +
+                ", age=" + age +
+                '}';
+    }
 }

@@ -4,6 +4,7 @@ import cn.wodesh.dao.sql.TemplateSQL;
 import org.apache.ibatis.annotations.DeleteProvider;
 import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.SelectProvider;
+import org.apache.ibatis.annotations.UpdateProvider;
 
 import java.util.List;
 
@@ -25,7 +26,7 @@ public interface TemplateDao<T> {
     void deleteBySQLRequire(String sql , Class<T> c) throws Exception;
 
     @DeleteProvider(type = TemplateSQL.class , method = "bySQL")
-    void deleteBySQL(String sql , Class<T> c) throws Exception;
+    void deleteBySQL(String sql) throws Exception;
 
     @SelectProvider(type = TemplateSQL.class , method = "findById")
     T findById(Object id , Class<T> c) throws Exception;
@@ -41,5 +42,8 @@ public interface TemplateDao<T> {
 
     @SelectProvider(type = TemplateSQL.class , method = "bySQL")
     List<T> findBySQLToList(String sql) throws Exception;
+
+    @UpdateProvider(type = TemplateSQL.class , method = "")
+    void updateById(T t) throws Exception;
 
 }

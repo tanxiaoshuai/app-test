@@ -4,7 +4,11 @@ import cn.wodesh.bean.UserBean;
 import cn.wodesh.dao.annotation.FieldName;
 import cn.wodesh.dao.annotation.ID;
 import cn.wodesh.dao.annotation.TableName;
+import com.alibaba.fastjson.JSONArray;
+
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by TS on 2018/2/25.
@@ -18,16 +22,12 @@ public class TemplateSQL {
      * @return
      */
     public static  <T> String save(T t){
+        long s = System.currentTimeMillis();
         StringBuffer sb = new StringBuffer();
         StringBuffer sbv = new StringBuffer();
         sb.append("insert into ");
         Class clazz = t.getClass();
-        boolean tableAnn = clazz.isAnnotationPresent(TableName.class);
-        if(tableAnn){
-            TableName tableName = (TableName) clazz.getAnnotation(TableName.class);
-            sb.append(tableName.name());
-        }else
-            sb.append(clazz.getSimpleName());
+        sb.append(tableName(clazz));
         sb.append(" (");
         Field[] fields = clazz.getDeclaredFields();
         for(Field f : fields){
@@ -41,9 +41,11 @@ public class TemplateSQL {
             String name = null;
             if(fieldAnn) {
                 FieldName fieldName = f.getAnnotation(FieldName.class);
-                name = fieldName.name();
-            }else
-                name = f.getName();
+                String n = fieldName.name();
+                name = !"default".equals(n) ? n : f.getName();
+            }else {
+                continue;
+            }
             sb.append(name);
             sb.append(",");
             sbv.append("#{");
@@ -56,6 +58,7 @@ public class TemplateSQL {
         sb.append(") values (");
         sb.append(sbv.substring(0 , sbv.length() - 1));
         sb.append(")");
+        System.out.println("sql执行时间：" + (System.currentTimeMillis() - s ));
         System.out.println(sb.toString());
         return sb.toString();
     }
@@ -119,6 +122,7 @@ public class TemplateSQL {
         sb.append("delete from ");
         sb.append(tableName(c));
         sb.append(" where ");
+        sb.append(sql);
         return sb.toString();
     }
 
@@ -169,6 +173,15 @@ public class TemplateSQL {
         return sql;
     }
 
+    public static <T> String updateById(T t){
+        Class c = t.getClass();
+        StringBuffer sb = new StringBuffer();
+        sb.append("update ");
+        sb.append(tableName(c));
+        sb.append(" set ");
+        return null;
+    }
+
     /**
      * 返回表名
      * @param c
@@ -180,6 +193,7 @@ public class TemplateSQL {
                 ((TableName) c.getAnnotation(TableName.class)).name() :
                 c.getSimpleName();
     }
+
 
     public static Field fieldId(Class c){
         Field[] f = c.getDeclaredFields();
