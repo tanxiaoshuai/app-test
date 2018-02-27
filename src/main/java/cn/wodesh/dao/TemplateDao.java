@@ -43,7 +43,7 @@ public interface TemplateDao<T> {
     @SelectProvider(type = TemplateSQL.class , method = "bySQL")
     List<T> findBySQLToList(String sql) throws Exception;
 
-    @UpdateProvider(type = TemplateSQL.class , method = "")
+    @UpdateProvider(type = TemplateSQL.class , method = "updateById")
     void updateById(T t) throws Exception;
 
 }

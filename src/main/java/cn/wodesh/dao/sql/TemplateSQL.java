@@ -4,6 +4,7 @@ import cn.wodesh.bean.UserBean;
 import cn.wodesh.dao.annotation.FieldName;
 import cn.wodesh.dao.annotation.ID;
 import cn.wodesh.dao.annotation.TableName;
+import cn.wodesh.exception.FinalException;
 import com.alibaba.fastjson.JSONArray;
 
 import java.lang.reflect.Field;
@@ -22,7 +23,6 @@ public class TemplateSQL {
      * @return
      */
     public static  <T> String save(T t){
-        long s = System.currentTimeMillis();
         StringBuffer sb = new StringBuffer();
         StringBuffer sbv = new StringBuffer();
         sb.append("insert into ");
@@ -58,8 +58,6 @@ public class TemplateSQL {
         sb.append(") values (");
         sb.append(sbv.substring(0 , sbv.length() - 1));
         sb.append(")");
-        System.out.println("sql执行时间：" + (System.currentTimeMillis() - s ));
-        System.out.println(sb.toString());
         return sb.toString();
     }
 
@@ -174,11 +172,33 @@ public class TemplateSQL {
     }
 
     public static <T> String updateById(T t){
+        String id , name = null;
         Class c = t.getClass();
         StringBuffer sb = new StringBuffer();
+        StringBuffer sbv = new StringBuffer();
         sb.append("update ");
         sb.append(tableName(c));
         sb.append(" set ");
+        Field [] fed = c.getDeclaredFields();
+        for(Field f : fed){
+            boolean boid = f.isAnnotationPresent(ID.class);
+            boolean fieldbo= f.isAnnotationPresent(FieldName.class);
+            name = f.getAnnotation(FieldName.class).name();
+            if(boid){
+                if(fieldbo)
+                    throw new FinalException("false" , "Id未定义为数据库对相应字段");
+                id = "default".equals(f.getAnnotation(FieldName.class)) ?
+                        f.getName() : name;
+                continue;
+            }
+            if(fieldbo){
+                sbv.append("default".equals(f.getAnnotation(FieldName.class)) ?
+                        f.getName() : name);
+                sbv.append("=");
+            }
+
+
+        }
         return null;
     }
 
