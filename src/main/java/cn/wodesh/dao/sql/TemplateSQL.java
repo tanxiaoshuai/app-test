@@ -4,12 +4,7 @@ import cn.wodesh.bean.UserBean;
 import cn.wodesh.dao.annotation.FieldName;
 import cn.wodesh.dao.annotation.ID;
 import cn.wodesh.dao.annotation.TableName;
-import cn.wodesh.exception.FinalException;
-import com.alibaba.fastjson.JSONArray;
-
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by TS on 2018/2/25.
@@ -72,8 +67,8 @@ public class TemplateSQL {
         StringBuffer sb = new StringBuffer();
         Class clazz = t.getClass();
         Field f = fieldId(clazz);
-        String idName = f.isAnnotationPresent(FieldName.class) ?
-                f.getAnnotation(FieldName.class).name() : f.getName();
+        String name = f.getAnnotation(FieldName.class).name();
+        String idName = !"default".equals(name) ? name : f.getName();
         f.setAccessible(true);
         String idvalue = (String) f.get(t);
         sb.append("delete from ");
@@ -83,6 +78,7 @@ public class TemplateSQL {
         sb.append(" = '");
         sb.append(idvalue);
         sb.append("'");
+        System.out.println(sb.toString());
         return sb.toString();
     }
 
@@ -96,8 +92,8 @@ public class TemplateSQL {
     public static <T> String deleteById(Object id , Class<T> c){
         StringBuffer sb = new StringBuffer();
         Field f = fieldId(c);
-        String idName = f.isAnnotationPresent(FieldName.class) ?
-                f.getAnnotation(FieldName.class).name() : f.getName();
+        String name = f.getAnnotation(FieldName.class).name();
+        String idName = !"default".equals(name) ? name : f.getName();
         sb.append("delete from ");
         sb.append(tableName(c));
         sb.append(" where ");
@@ -134,8 +130,8 @@ public class TemplateSQL {
     public static <T> String findById(Object id , Class<T> c){
         StringBuffer sb = new StringBuffer();
         Field f = fieldId(c);
-        String idName = f.isAnnotationPresent(FieldName.class) ?
-                f.getAnnotation(FieldName.class).name() : f.getName();
+        String name = f.getAnnotation(FieldName.class).name();
+        String idName = !"default".equals(name) ? name : f.getName();
         sb.append("select * from ");
         sb.append(tableName(c));
         sb.append(" where ");
@@ -171,8 +167,9 @@ public class TemplateSQL {
         return sql;
     }
 
-    public static <T> String updateById(T t){
-        String id , name = null;
+    public static <T> String updateById(T t) throws Exception {
+        String id = null, name = null;
+        Object idval = null;
         Class c = t.getClass();
         StringBuffer sb = new StringBuffer();
         StringBuffer sbv = new StringBuffer();
@@ -183,23 +180,38 @@ public class TemplateSQL {
         for(Field f : fed){
             boolean boid = f.isAnnotationPresent(ID.class);
             boolean fieldbo= f.isAnnotationPresent(FieldName.class);
-            name = f.getAnnotation(FieldName.class).name();
+            f.setAccessible(true);
             if(boid){
-                if(fieldbo)
-                    throw new FinalException("false" , "Id未定义为数据库对相应字段");
-                id = "default".equals(f.getAnnotation(FieldName.class)) ?
-                        f.getName() : name;
+                if(!fieldbo)
+                    throw new NullPointerException("实体类"
+                            + c.getSimpleName() + "字段"+ f.getName() +"未定义为数据库对相应字段");
+                name = f.getAnnotation(FieldName.class).name();
+                id = "default".equals(name) ? f.getName() : name;
+                idval = f.get(t);
                 continue;
             }
             if(fieldbo){
-                sbv.append("default".equals(f.getAnnotation(FieldName.class)) ?
-                        f.getName() : name);
-                sbv.append("=");
+                Object o = f.get(t);
+                if (o == null)
+                    continue;
+                name = f.getAnnotation(FieldName.class).name();
+                sbv.append("default".equals(name) ? f.getName() : name);
+                sbv.append("='");
+                sbv.append(o);
+                sbv.append("',");
             }
-
-
         }
-        return null;
+        String sql = sb.toString();
+        sb = new StringBuffer();
+        sb.append(sql);
+        sb.append(sbv.substring(0 , sbv.length() - 1));
+        sb.append(" where ");
+        sb.append(id);
+        sb.append(" = '");
+        sb.append(idval);
+        sb.append("'");
+        System.out.println(sb.toString());
+        return sb.toString();
     }
 
     /**
@@ -220,8 +232,12 @@ public class TemplateSQL {
         int count = 0;
         for(Field s : f){
             boolean b = s.isAnnotationPresent(ID.class);
-            if(b)
+            if(b){
+                if(!s.isAnnotationPresent(FieldName.class))
+                    throw new NullPointerException("实体类"
+                            + c.getSimpleName() + "字段"+ s.getName() +"未定义为数据库对相应字段");
                 return s;
+            }
             count++;
         }
         if(count == f.length){

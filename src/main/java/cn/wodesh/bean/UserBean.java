@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 public class UserBean {
 
     @ID
+    @FieldName
     private String uuid;
 
     @FieldName(name = "username")
@@ -28,6 +29,7 @@ public class UserBean {
     @FieldName
     private String token;
 
+    @FieldName
     private int age;
 
     public String getUuid() {
